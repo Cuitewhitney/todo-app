@@ -1,32 +1,3 @@
-
-
-
-
-//   // ← THIS useEffect saves tasks every time they change
-//   useEffect(() => {
-//     localStorage.setItem('todo-tasks', JSON.stringify(tasks));
-//   }, [tasks]);
-
-//   // ← THIS useEffect still checks for overdue tasks
-//   useEffect(() => {
-//     const checkLateness = () => {
-//       const now = new Date();
-//       const newWarnings: { [key: number]: string } = {};
-//       tasks.forEach(task => {
-//         if (!task.completed && task.dueDate && task.dueDate < now) {
-//           newWarnings[task.id] = 'Overdue!';
-//         }
-//       });
-//       setWarnings(newWarnings);
-//     };
-//     checkLateness();
-//     const interval = setInterval(checkLateness, 60000);
-//     return () => clearInterval(interval);
-//   }, [tasks]);
-
-
-
-
 import React, { useState, useEffect } from 'react';
 
 interface TaskType {
@@ -38,18 +9,41 @@ interface TaskType {
 }
 
 const TodoApp: React.FC = () => {
+  // const [tasks, setTasks] = useState<TaskType[]>(() => {
+  //   const saved = localStorage.getItem('todo-tasks');
+  //   return saved ? JSON.parse(saved) : [];
+  // });
   const [tasks, setTasks] = useState<TaskType[]>(() => {
+  try {
     const saved = localStorage.getItem('todo-tasks');
-    return saved ? JSON.parse(saved) : [];
-  });
+    if (!saved) return [];
+
+    const parsed = JSON.parse(saved);
+
+    return parsed.map((task: any) => ({
+      ...task,
+      dueDate: task.dueDate ? new Date(task.dueDate) : null,
+    }));
+  } catch (error) {
+    console.error('Failed to load tasks from localStorage', error);
+    return [];
+  }
+});
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [newDueDate, setNewDueDate] = useState<string>('');
   const [warnings, setWarnings] = useState<{ [key: number]: string }>({});
 
+  // useEffect(() => {
+  //   localStorage.setItem('todo-tasks', JSON.stringify(tasks));
+  // }, [tasks]);
   useEffect(() => {
-    localStorage.setItem('todo-tasks', JSON.stringify(tasks));
+    try {
+      localStorage.setItem('todo-tasks', JSON.stringify(tasks));
+    } catch (err) {
+      console.error('Failed to save tasks', err);
+    }
   }, [tasks]);
 
   useEffect(() => {
