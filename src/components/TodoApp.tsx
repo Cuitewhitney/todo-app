@@ -1,3 +1,32 @@
+
+
+
+
+//   // ← THIS useEffect saves tasks every time they change
+//   useEffect(() => {
+//     localStorage.setItem('todo-tasks', JSON.stringify(tasks));
+//   }, [tasks]);
+
+//   // ← THIS useEffect still checks for overdue tasks
+//   useEffect(() => {
+//     const checkLateness = () => {
+//       const now = new Date();
+//       const newWarnings: { [key: number]: string } = {};
+//       tasks.forEach(task => {
+//         if (!task.completed && task.dueDate && task.dueDate < now) {
+//           newWarnings[task.id] = 'Overdue!';
+//         }
+//       });
+//       setWarnings(newWarnings);
+//     };
+//     checkLateness();
+//     const interval = setInterval(checkLateness, 60000);
+//     return () => clearInterval(interval);
+//   }, [tasks]);
+
+
+
+
 import React, { useState, useEffect } from 'react';
 
 interface TaskType {
@@ -9,12 +38,36 @@ interface TaskType {
 }
 
 const TodoApp: React.FC = () => {
-  const [tasks, setTasks] = useState<TaskType[]>([]);
+  const [tasks, setTasks] = useState<TaskType[]>(() => {
+    const saved = localStorage.getItem('todo-tasks');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [newDueDate, setNewDueDate] = useState<string>('');
   const [warnings, setWarnings] = useState<{ [key: number]: string }>({});
+
+  useEffect(() => {
+    localStorage.setItem('todo-tasks', JSON.stringify(tasks));
+  }, [tasks]);
+
+  useEffect(() => {
+    const checkLateness = () => {
+      const now = new Date();
+      const newWarnings: { [key: number]: string } = {};
+      tasks.forEach(task => {
+        if (!task.completed && task.dueDate && task.dueDate < now) {
+          newWarnings[task.id] = 'Overdue!';
+        }
+      });
+      setWarnings(newWarnings);
+    };
+    checkLateness();
+    const interval = setInterval(checkLateness, 60000);
+    return () => clearInterval(interval);
+  }, [tasks]);
+
 
   const addTask = () => {
     if (!newTitle.trim()) return;
